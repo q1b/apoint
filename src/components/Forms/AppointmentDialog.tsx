@@ -92,6 +92,7 @@ export default component$(() => {
                   (5 * 60 * 60 * 1000 + 30 * 60 * 1000)
               );
               await server$(async (startTime: string) => {
+                console.log("Starting loading User");
                 const user = await prisma.user.findFirst({
                   where: {
                     id: session.value.user_id,
@@ -100,19 +101,26 @@ export default component$(() => {
                     osteopath: true,
                   },
                 });
-                await prisma.appointment.create({
-                  data: {
-                    duration,
-                    label: "Appointment",
-                    place: "Shruti Room No. 104",
-                    startAt: startTime,
-                    osteopath: {
-                      connect: {
-                        id: user?.osteopath?.id,
+                console.log("User", user);
+                console.log("Starting Creating Appointment");
+                try {
+                  const appointment = await prisma.appointment.create({
+                    data: {
+                      duration,
+                      label: "Appointment",
+                      place: "Shruti Room No. 104",
+                      startAt: startTime,
+                      osteopath: {
+                        connect: {
+                          id: user?.osteopath?.id,
+                        },
                       },
                     },
-                  },
-                });
+                  });
+                  console.log(appointment);
+                } catch (error) {
+                  console.log(error);
+                }
               })(startTime.toISOString());
             }}
           >

@@ -1,7 +1,7 @@
 import { auth, googleAuth } from "~/lib/lucia";
 import { OAuthRequestError } from "@lucia-auth/oauth";
 import type { RequestHandler } from "@builder.io/qwik-city";
-import { extractFromEmail } from "~/utils";
+import { extractFromEmail, isOsteopath } from "~/utils";
 import prisma from "~/lib/prisma";
 
 export const onGet: RequestHandler = async ({
@@ -38,11 +38,7 @@ export const onGet: RequestHandler = async ({
       const details = extractFromEmail(googleUser.email);
       if (details !== undefined) {
         const { batch, year } = details;
-        if (
-          (typeof batch === "string" &&
-            (batch.includes("mos") || batch.includes("bos"))) ||
-          googleUser.email?.includes("sukhpreet.s")
-        ) {
+        if (isOsteopath(googleUser.email)) {
           // Create Osteopathy Profile
           const ostepath = await prisma.osteopath.create({
             data: {

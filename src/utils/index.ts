@@ -21,6 +21,7 @@ export function extractFromEmail(email_id: string | undefined | null) {
 
 export function isOsteopath(email_id: string | undefined | null) {
     if(!(typeof email_id === 'string')) return false 
+    if(email_id.includes("sukhpreet.s")) return true
     const regrex = /(?<name>\w+)\.(?<meta>\w+)@(?<university>\w+)\.edu\.in/g
     const group = email_id.match(regrex)?.groups
     if(!group) return false

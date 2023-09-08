@@ -1,15 +1,17 @@
 import "@total-typescript/ts-reset"
 import prisma from "~/lib/prisma";
 import {
+	GaxiosPromise,
 	calendar_v3,
 	auth as google,
 	calendar as googleCalendar
 } from "@googleapis/calendar";
+import { GaxiosResponse } from "gaxios";
 
 export const CalendarName = "Osteopathy Appointment Calendar"
 
-export default function calendarService(credential: { access_token: string; refresh_token: string | null; id:string }) {
-	const googleAuth = (credential: { access_token: string; refresh_token: string | null;id:string }) => {
+export default function calendarService(credential: { access_token: string; refresh_token: string | null; id: string }) {
+	const googleAuth = (credential: { access_token: string; refresh_token: string | null; id: string }) => {
 		async function getGoogleAuth() {
 			const { client_id, client_secret, redirect_uri } = {
 				client_id: process.env.GOOGLE_CLIENT_ID!,
@@ -30,16 +32,16 @@ export default function calendarService(credential: { access_token: string; refr
 			try {
 				console.log("Requesting for Refersh Token")
 				const ress = await myGoogleAuth.refreshToken(credential.refresh_token);
-				console.log("Response from refresh_token",ress)
-				const {res} = ress;
+				console.log("Response from refresh_token", ress)
+				const { res } = ress;
 				const token = res?.data;
 				credential.access_token = token.access_token;
 				// credential.expiry_date = token.expiry_date;
 				await prisma.session.update({
-				  where: { id: credential.id },
-				  data: { 
+					where: { id: credential.id },
+					data: {
 						access_token: credential.access_token
-					 },
+					},
 				});
 				myGoogleAuth.setCredentials({
 					access_token: credential.access_token,
@@ -51,7 +53,7 @@ export default function calendarService(credential: { access_token: string; refr
 				let message;
 				if (err instanceof Error) message = err.message;
 				else message = String(err);
-				console.error("GOOGLE ERROR MESSAGE \n",message)
+				console.error("GOOGLE ERROR MESSAGE \n", message)
 				// if not invalid_grant, default behaviour (which admittedly isn't great)
 				if (message !== "invalid_grant") return myGoogleAuth;
 				// when the error is invalid grant, it's unrecoverable and the credential marked invalid.
@@ -68,10 +70,10 @@ export default function calendarService(credential: { access_token: string; refr
 			},
 		};
 	};
-	const auth = googleAuth(credential);
+	const auth = googleAuth(credential)
 	// '2013-02-14T13:15:03-08:00' (YYYY-MM-DDTHH:mm:ssZ)
 	const createEvent = async (calendarId: string,
-		{ summary, startTime, endTime, timeZone, hostEmail, nonHostEmail }: { summary: string; startTime: string; endTime: string; timeZone?: string; hostEmail: string; nonHostEmail: string }) => {
+		{ summary, startTime, endTime, timeZone, host, nonHost }: { summary: string; startTime: string; endTime: string; timeZone?: string; host: { email: string; }; nonHost: { email: string; } }) => {
 		const myGoogleAuth = await auth.getToken();
 		const payload: calendar_v3.Schema$Event = {
 			summary: CalendarName,
@@ -85,8 +87,8 @@ export default function calendarService(credential: { access_token: string; refr
 				timeZone: timeZone || 'Asia/Kolkata',
 			},
 			attendees: [
-				{ email: hostEmail, organizer: true },
-				{ email: nonHostEmail, organizer: false }
+				{ email: host.email, organizer: true, },
+				{ email: nonHost.email, organizer: false }
 			],
 			reminders: {
 				useDefault: true,
@@ -106,9 +108,57 @@ export default function calendarService(credential: { access_token: string; refr
 			return res.data
 		} catch (error) {
 			if (error) {
-				console.error("There was an error contacting google calendar service: ", error);
-				return error
+				console.error("There was an error contacting google calendar service: ", error)
 			}
+		}
+	}
+
+	const importEvent = async ({ calendarId,start, end, iCalUID }: {
+		calendarId?:string,
+		start: calendar_v3.Schema$Event['start'],
+		end: calendar_v3.Schema$Event['end'],
+		iCalUID: calendar_v3.Schema$Event['iCalUID']
+	}) => {
+		const myGoogleAuth = await auth.getToken()
+		const calendar = googleCalendar({
+			version: "v3"
+		});
+		try {
+			const res = await calendar.events.import({
+				auth: myGoogleAuth,
+				calendarId: calendarId ?? "primary",
+				requestBody: {
+					iCalUID,
+					start,
+					end
+				}
+			})
+			return res.data
+		} catch (error) {
+			console.error("Failed to Import the Calendar Event", error)
+		}
+	}
+
+	const updateEvent = async (calendarId: string, eventId: string, payload: calendar_v3.Schema$Event) => {
+		const myGoogleAuth = await auth.getToken()
+		const calendar = googleCalendar({
+			version: "v3"
+		});
+		try {
+			const res = await calendar.events.update(
+				{
+					auth: myGoogleAuth,
+					calendarId,
+					eventId,
+					sendNotifications: true,
+					sendUpdates: "none",
+					requestBody: payload,
+				}
+			);
+			return res
+		} catch (error) {
+			console.error("Error Updating the Calendar Event, while updating", error)
+			return
 		}
 	}
 
@@ -134,6 +184,7 @@ export default function calendarService(credential: { access_token: string; refr
 			return err
 		}
 	}
+
 	const getAvailability = async (
 		calendarId: string,
 		dateFrom: string,
@@ -187,17 +238,29 @@ export default function calendarService(credential: { access_token: string; refr
 			summary: cal.summary
 		})) || []
 	}
-	const getCalendar = async () => {
+
+	const getCalendar = async (calendarId?: string) => {
 		const myGoogleAuth = await auth.getToken();
 		const calendar = googleCalendar({
 			version: "v3",
 			auth: myGoogleAuth,
 		});
+		if (calendarId) {
+			try {
+				const res = await calendar.calendars.get({
+					calendarId
+				})
+				return res.data
+			} catch (error) {
+				console.log(`Getting the Calendar with CalendarID: ${calendarId} failed`, error)
+			}
+		}
+
 		let list;
 		try {
 			list = await listCalendars();
 		} catch (err) {
-			console.log("Credential Failed", err);
+			console.log("Failed to get the list of Calendars", err);
 		}
 		const res = list?.find((item) => item.summary === CalendarName);
 		if (!res) return undefined;
@@ -206,6 +269,7 @@ export default function calendarService(credential: { access_token: string; refr
 		});
 		return calendar_res?.data;
 	}
+
 	const addCalendar = async () => {
 		const myGoogleAuth = await auth.getToken();
 		const calendar = googleCalendar({
@@ -220,13 +284,16 @@ export default function calendarService(credential: { access_token: string; refr
 		});
 		return res.data;
 	}
+
 	return {
 		getCalendar,
 		addCalendar,
 		getAvailability,
 		listCalendars,
-		deleteEvent,
 		createEvent,
+		deleteEvent,
+		updateEvent,
+		importEvent,
 	}
 }
 

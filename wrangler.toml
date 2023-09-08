@@ -1,7 +1,0 @@
-name = "qwik-app"
-
-compatibility_date = "2023-07-30"
-
-kv_namespaces = [
-  { binding = "STORAGE", id = "92c19bbabe254336b9b93a7ceba5c6a8" }
-]

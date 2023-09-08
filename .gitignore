@@ -44,3 +44,7 @@ lerna-debug.log*
 functions/**/*.js
 
 .env
+
+# Azure
+/azure-functions/**
+!/azure-functions/host.json

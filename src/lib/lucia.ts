@@ -4,7 +4,6 @@ import { google } from "@lucia-auth/oauth/providers"
 import { qwik } from "lucia/middleware";
 import client from "./prisma"
 import { RequestEventLoader } from "@builder.io/qwik-city";
-import { extractFromEmail } from "~/utils";
 
 export const auth = lucia({
 	adapter: prisma(client,{
@@ -18,7 +17,6 @@ export const auth = lucia({
     return session
   },
   getUserAttributes: (user) => {
-    console.log(extractFromEmail('sukhpreet.s2021btcseai@srisriuniversity.edu.in'))
 		return {
 			email: user.email,
       image: user.image,

@@ -5,7 +5,7 @@ import { Icons } from "~/components/Icons";
 // import { getSession } from "~/lib/lucia";
 import prisma from "~/lib/prisma";
 
-export const useAppointmentsLoader = routeLoader$(async (event) => {
+export const useAppointmentsLoader = routeLoader$(async () => {
   // const session = await getSession(event);
   // const user_id = session !== null ? session.user_id : null;
   const appointments = await prisma.appointment.findMany({

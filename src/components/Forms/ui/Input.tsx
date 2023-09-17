@@ -45,7 +45,15 @@ export const InputError = component$(({ name, error }: InputErrorProps) => {
 
 type TextInputProps = {
   ref: PropFunction<(element: Element) => void>;
-  type: "text" | "email" | "tel" | "password" | "url" | "number" | "date";
+  type:
+    | "text"
+    | "email"
+    | "tel"
+    | "password"
+    | "url"
+    | "number"
+    | "date"
+    | "time";
   name: string;
   description?: string;
   value: string | number | undefined;

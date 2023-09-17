@@ -17,7 +17,7 @@ export default extendConfig(baseConfig, () => {
     },
     ssr: {
       noExternal: /.*/,
-      external: ['@prisma/client'],
+      external: ['@prisma/client',"prisma"]
     },
     plugins: [azureSwaAdapter()],
   };

@@ -23,9 +23,9 @@ export default component$(() => {
   const [, { Form, Field }] = useForm<AppointmentForm>({
     loader: {
       value: {
-        date: "",
+        date: new Date(),
         duration: "30",
-        time: "",
+        time: new Date(),
       },
     },
   });

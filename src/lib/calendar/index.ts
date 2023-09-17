@@ -1,4 +1,3 @@
-import "@total-typescript/ts-reset"
 import prisma from "~/lib/prisma";
 import {
 	GaxiosPromise,
@@ -213,6 +212,7 @@ export default function calendarService(credential: { access_token: string; refr
 		if (!apires?.data.calendars) return []
 		const result = Object.values(apires.data.calendars).reduce((c, i) => {
 			i.busy?.forEach((busyTime) => {
+				// @ts-ignore
 				c.push({
 					start: busyTime.start || "",
 					end: busyTime.end || "",

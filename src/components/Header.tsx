@@ -24,6 +24,7 @@ const Item = component$((props: { href: string; icon: keyof typeof Icons }) => {
         isActive.value ? "text-slate-600" : "text-slate-500"
       )}
     >
+      {/* @ts-ignore */}
       <Icon class={cn(isActive.value ? "w-6 h-6" : "w-4 h-4")} />
       <Slot />
     </Link>

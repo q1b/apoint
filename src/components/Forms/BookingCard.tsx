@@ -57,11 +57,20 @@ export default component$(
       console.log("TOKENS FETCHED", tokens, props.host);
       let hostCalendar;
       if (tokens.host !== null && tokens.host.access_token !== null) {
-        hostCalendar = calendarService(tokens.host);
+        hostCalendar = calendarService({
+          access_token: tokens.host.access_token,
+          id: tokens.host.id,
+          refresh_token: tokens.host.refresh_token,
+        });
         console.log("Cal request");
         const osteoCalendar = await hostCalendar.getCalendar();
         console.log("Finished Calendar", osteoCalendar?.id);
-        if (osteoCalendar && osteoCalendar.id) {
+        if (
+          osteoCalendar &&
+          osteoCalendar.id &&
+          props.host.email &&
+          session.value.user.email
+        ) {
           console.log("Started Create Event");
           const event = await hostCalendar.createEvent(osteoCalendar.id, {
             summary: "Testing",

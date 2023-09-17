@@ -1,13 +1,11 @@
 {
   "$schema": "https://aka.ms/azure/static-web-apps-cli/schema",
   "configurations": {
-    "apoint": {
+    "qwik-app": {
       "appLocation": ".",
       "apiLocation": "./azure-functions",
       "outputLocation": "./dist",
-      "appBuildCommand": "npm run build",
-      "run": "npm run dev",
-      "appDevserverUrl": "http://localhost:5173"
+      "appBuildCommand": "npm run build"
     }
   }
 }

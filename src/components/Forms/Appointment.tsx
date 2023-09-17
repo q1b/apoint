@@ -17,7 +17,7 @@ type LoginForm = {
 export default component$(() => {
   const session = useSession();
   // Use login form
-  const [loginForm, { Form, Field }] = useForm<LoginForm>({
+  const [, { Form, Field }] = useForm<LoginForm>({
     loader: {
       value: {
         email: "",
@@ -48,13 +48,13 @@ export default component$(() => {
             const calendar = calendarService(session.value);
             const osteoCalendar = await calendar.getCalendar();
             try {
-              if (osteoCalendar && osteoCalendar.id) {
+              if (osteoCalendar && osteoCalendar.id && session.value.user.email) {
                 const res = await calendar.createEvent(osteoCalendar.id, {
                   summary: "Testing Meeting",
                   startTime,
                   endTime,
-                  hostEmail: session.value.user.email,
-                  nonHostEmail: values.email,
+                  host: { email: session.value.user.email },
+                  nonHost: { email: values.email },
                 });
                 return res;
               }

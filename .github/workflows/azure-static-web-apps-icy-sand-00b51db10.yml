@@ -27,10 +27,10 @@ jobs:
           action: "upload"
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "."
+          app_location: "/"
           api_runtime: "node:18"
-          api_location: "./azure-functions"
-          output_location: "./dist"
+          api_location: "/azure-functions"
+          output_location: "/dist"
           app_build_command: "npm run build"
           ###### End of Repository/Build Configurations ######
 

@@ -30,6 +30,7 @@ jobs:
           app_location: "/"
           api_runtime: "node:18"
           api_location: "/azure-functions"
+          skip_api_build: true
           output_location: "/dist"
           app_build_command: "npm run build"
           ###### End of Repository/Build Configurations ######
